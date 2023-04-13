@@ -12,7 +12,7 @@ def get_embedding(concept, clip_tokenizer, clip):
     :return: the embedding vector as a numpy array
     """
     with torch.no_grad():
-        inputs = clip_tokenizer(concept, return_tensors="pt").to("cuda")
+        inputs = clip_tokenizer(concept, return_tensors="pt").to(clip.device)
         embed = clip.get_text_features(**inputs)[0]
 
         # normalize the embedding to unit length
