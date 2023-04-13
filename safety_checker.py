@@ -27,7 +27,7 @@ def cosine_similarity(image_embeds, text_embeds):
     :param text_embeds: the text embeddings
     :return: the cosine similarity
     """
-    return torch.mm(image_embeds, text_embeds.t())
+    return image_embeds @ text_embeds.T
 
 
 class MySafetyChecker(nn.Module):
@@ -39,13 +39,15 @@ class MySafetyChecker(nn.Module):
         super().__init__()
         self.dtype = clip.dtype
         self.clip_model = clip
-        self.concept_embeds = torch.from_numpy(bad_embeddings).to(clip.device).to(self.dtype)
+        self.concept_embeds = bad_embeddings
 
     @torch.no_grad()
     def forward(self, clip_input, images):
         image_embeds = self.clip_model.get_image_features(clip_input)
         image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
-        sim = cosine_similarity(image_embeds, self.concept_embeds).cpu().float().numpy()
+
+        image_embeds = image_embeds.cpu().float().numpy()
+        sim = cosine_similarity(image_embeds, self.concept_embeds)
         print("similarity", sim)
 
         result = []
