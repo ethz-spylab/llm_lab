@@ -39,7 +39,7 @@ class MySafetyChecker(nn.Module):
         super().__init__()
         self.dtype = clip.dtype
         self.clip_model = clip
-        self.concept_embeds = torch.from_numpy(bad_embeddings).to("cuda").to(self.dtype)
+        self.concept_embeds = torch.from_numpy(bad_embeddings).to(clip.device).to(self.dtype)
 
     @torch.no_grad()
     def forward(self, clip_input, images):
