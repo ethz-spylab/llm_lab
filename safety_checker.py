@@ -13,11 +13,11 @@ def get_embedding(concept, clip_tokenizer, clip):
     """
     with torch.no_grad():
         inputs = clip_tokenizer(concept, return_tensors="pt", padding=True).to(clip.device)
-        embed = clip.get_text_features(**inputs)[0]
+        embed = clip.get_text_features(**inputs)
 
         # normalize the embedding to unit length
         embed = embed / embed.norm(p=2, dim=-1, keepdim=True)
-        return embed.cpu().numpy()
+        return embed
 
 
 def cosine_similarity(image_embeds, text_embeds):
