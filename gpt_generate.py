@@ -11,19 +11,18 @@ generate_kwargs = {
 }
 
 
-def hash_input_id(input_id: torch.LongTensor):
+def hash_input_id(input_id: int):
     """
     Hash the input id of the previous token to a PRNG seed.
     :param input_id: the id of the previous token
     :return: the seed
     """
-    assert len(input_id.shape) == 1
     # very non-cryptographically secure
-    ret = (input_id[-1].item() * 314159) % 0xDEADBEEF
+    ret = (input_id * 314159) % 0xDEADBEEF
     return ret
 
 
-def gen_red_list(input_id: torch.LongTensor, vocab_size: int, frac_red: float = 0.5):
+def gen_red_list(input_id: int, vocab_size: int, frac_red: float = 0.5):
     """
     Generate a pseudorandom list of tokens to ban.
     :param input_id: The input id of the previous token.
@@ -32,6 +31,20 @@ def gen_red_list(input_id: torch.LongTensor, vocab_size: int, frac_red: float = 
     :return: The list of tokens to red-list.
     """
     seed = hash_input_id(input_id)
+    np.random.seed(seed)
+    return np.random.choice(vocab_size, size=int(frac_red * vocab_size), replace=False)
+
+
+def gen_red_list_salt(input_id: int, vocab_size: int, salt : int, frac_red: float = 0.5):
+    """
+    Generate a pseudorandom list of tokens to ban.
+    :param input_id: The input id of the previous token.
+    :param vocab_size: The size of the vocabulary.
+    :param frac_red: The fraction of the vocabulary to red-list.
+    :return: The list of tokens to red-list.
+    """
+    seed_mid = hash_input_id(input_id)
+    seed = hash_input_id(seed_mid + salt)
     np.random.seed(seed)
     return np.random.choice(vocab_size, size=int(frac_red * vocab_size), replace=False)
 
