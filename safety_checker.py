@@ -69,7 +69,11 @@ class MySafetyChecker(nn.Module):
 
         for idx, has_nsfw_concept in enumerate(has_nsfw_concepts):
             if has_nsfw_concept:
-                images[idx] = np.zeros(images[idx].shape)  # black image
+                # black image
+                if isinstance(images, np.ndarray):
+                    images[idx] = np.zeros(images[idx].shape)  
+                elif isinstance(images, torch.Tensor):
+                    images[idx] = torch.zeros_like(images[idx])
 
         if any(has_nsfw_concepts):
             print(
