@@ -33,7 +33,7 @@ Q1_GENS_FILENAME = "Q1_gens.txt"
 Q1_GUESSES_FILENAME = "Q1_guesses.npy"
 Q1_GENS_LEN = 60
 Q1_GUESSES_SHAPE = (80,)
-Q1_GUESSES_RANGE = (0, 5)
+Q1_GUESSES_RANGE = (1, 4)
 
 # Q2 parameters
 Q2_API_KEY_FILENAME = "Q2_key.txt"
@@ -79,8 +79,8 @@ def check_q1(path: ZipPath) -> None:
                 f"{Q1_GUESSES_FILENAME} should contain integers only, got {guesses.dtype}."
             )
         if not (
-            np.all(guesses > Q1_GUESSES_RANGE[0])
-            and np.all(guesses < Q1_GUESSES_RANGE[1])
+            np.all(guesses >= Q1_GUESSES_RANGE[0])
+            and np.all(guesses <= Q1_GUESSES_RANGE[1])
         ):
             raise InvalidSubmissionError(
                 f"{Q1_GUESSES_FILENAME} should contain integers between {Q1_GUESSES_RANGE[0]} and {Q1_GUESSES_RANGE[1]} (both inclusive) only."
