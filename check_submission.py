@@ -5,10 +5,10 @@
 # ]
 # ///
 import os
-from pathlib import Path
 import sys
 import numpy as np
 import re
+import secrets
 from zipfile import ZipFile, Path as ZipPath
 
 
@@ -28,8 +28,21 @@ def is_valid_student_id(input_string: str) -> bool:
     return bool(re.match(pattern, input_string))
 
 
+# Q1 parameters
 Q1_GENS_FILENAME = "Q1_gens.txt"
 Q1_GUESSES_FILENAME = "Q1_guesses.npy"
+Q1_GENS_LEN = 60
+Q1_GUESSES_SHAPE = (80,)
+Q1_GUESSES_RANGE = (0, 5)
+
+# Q2 parameters
+Q2_API_KEY_FILENAME = "Q2_key.txt"
+Q2_CODE_FILENAME = "Q2_code"
+Q2_CODE_EXTENSIONS = [".py", ".ipynb"]
+Q2_PVALUE_FILENAME = "Q2_pvalue.npy"
+Q2_BOOL_FILENAME = "Q2_bool.npy"
+Q2_ARRAYS_SHAPE = (140,)
+Q2_EXAMPLE_KEY = secrets.token_urlsafe(50)
 
 
 class InvalidSubmissionError(Exception):
@@ -48,7 +61,7 @@ def check_q1(path: ZipPath) -> None:
         raise InvalidSubmissionError(f"{Q1_GENS_FILENAME} not found in the submission")
     with gens_file.open() as f:
         gens = f.readlines()
-        if len(gens) != 60:
+        if len(gens) != Q1_GENS_LEN:
             raise InvalidSubmissionError(
                 f"{Q1_GENS_FILENAME} should contain exactly 60 elements"
             )
@@ -61,24 +74,70 @@ def check_q1(path: ZipPath) -> None:
         )
     with guesses_file.open("rb") as f:
         guesses = np.load(f)
-        print(guesses)
         if not np.issubdtype(guesses.dtype, np.integer):
             raise InvalidSubmissionError(
                 f"{Q1_GUESSES_FILENAME} should contain integers only."
             )
-        if not np.all(guesses > 0) or not np.all(guesses < 5):
+        if not (
+            np.all(guesses > Q1_GUESSES_RANGE[0])
+            and np.all(guesses < Q1_GUESSES_RANGE[1])
+        ):
             raise InvalidSubmissionError(
                 f"{Q1_GUESSES_FILENAME} should contain integers between 1 and 4 (both inclusive) only."
             )
-        if guesses.shape != (80,):
+        if guesses.shape != Q1_GUESSES_SHAPE:
             raise InvalidSubmissionError(
                 f"{Q1_GUESSES_FILENAME} should contain exactly 80 elements."
             )
+    print("Q1 checks passed.")
 
 
 def check_q2(path: ZipPath) -> None:
-    # Implement your check for question 2 here
-    pass
+    api_key_file = path / Q2_API_KEY_FILENAME
+    if not api_key_file.exists():
+        raise InvalidSubmissionError(
+            f"{Q2_API_KEY_FILENAME} not found in the submission"
+        )
+    with api_key_file.open() as f:
+        api_key = f.read().strip()
+        if len(api_key) != len(Q2_EXAMPLE_KEY):
+            raise InvalidSubmissionError(
+                f"{Q2_API_KEY_FILENAME} should contain exactly {len(Q2_EXAMPLE_KEY)} characters."
+            )
+
+    # Check the code file
+    code_file_exists = False
+    for ext in Q2_CODE_EXTENSIONS:
+        code_file = path / f"{Q2_CODE_FILENAME}{ext}"
+        if code_file.exists():
+            if code_file_exists:
+                raise InvalidSubmissionError(
+                    f"Multiple {Q2_CODE_FILENAME} files found, only one is allowed."
+                )
+            code_file_exists = True
+
+    if not code_file_exists:
+        raise InvalidSubmissionError(
+            f"No {Q2_CODE_FILENAME} file found. Please submit a file with one of these extensions: {', '.join(Q2_CODE_EXTENSIONS)}"
+        )
+
+    # control p-values file
+    for file in [Q2_PVALUE_FILENAME, Q2_BOOL_FILENAME]:
+        array_file = path / file
+        if not array_file.exists():
+            raise InvalidSubmissionError(
+                f"No {file} file found. Please submit a file with this extension."
+            )
+        with array_file.open("rb") as f:
+            array = np.load(f)
+            if not np.issubdtype(array.dtype, np.integer):
+                raise InvalidSubmissionError(f"{file} should contain integers only.")
+            if array.shape != Q2_ARRAYS_SHAPE:
+                raise InvalidSubmissionError(
+                    f"{file} should contain an array of shape (1000,)."
+                )
+
+    print("Q2 checks passed.")
 
 
 def check_q3(path: ZipPath) -> None:
