@@ -4,6 +4,7 @@
 #     "numpy",
 # ]
 # ///
+import base64
 import os
 import sys
 import numpy as np
@@ -42,7 +43,7 @@ Q2_CODE_EXTENSIONS = [".py", ".ipynb"]
 Q2_PVALUE_FILENAME = "Q2_pvalue.npy"
 Q2_BOOL_FILENAME = "Q2_bool.npy"
 Q2_ARRAYS_SHAPE = (140,)
-Q2_EXAMPLE_KEY = secrets.token_urlsafe(50)
+Q2_KEY_LEN = 50
 
 
 class InvalidSubmissionError(Exception):
@@ -52,6 +53,19 @@ class InvalidSubmissionError(Exception):
 def has_specific_subdirectory(parent_path: ZipPath, subdir_name: str) -> bool:
     subdir_path = parent_path / subdir_name
     return subdir_path.exists() and subdir_path.is_dir()
+
+
+def is_valid_token_urlsafe(token: str, key_len: int) -> bool:
+    try:
+        # Add padding if needed
+        padded = token + "=" * (4 - len(token) % 4) if len(token) % 4 else token
+        # Replace URL-safe chars with standard base64 chars
+        padded = padded.replace("-", "+").replace("_", "/")
+        # Decode and check length
+        decoded = base64.b64decode(padded)
+        return len(decoded) == key_len
+    except Exception:
+        return False
 
 
 def check_q1(path: ZipPath) -> None:
@@ -100,9 +114,9 @@ def check_q2(path: ZipPath) -> None:
         )
     with api_key_file.open() as f:
         api_key = f.read().strip()
-        if len(api_key) != len(Q2_EXAMPLE_KEY):
+        if not is_valid_token_urlsafe(api_key, Q2_KEY_LEN):
             raise InvalidSubmissionError(
-                f"{Q2_API_KEY_FILENAME} should contain exactly {len(Q2_EXAMPLE_KEY)} characters, got {len(api_key)}."
+                f"{Q2_API_KEY_FILENAME} should contain a base64-encoded string of {Q2_KEY_LEN} bytes."
             )
 
     # Check the code file
