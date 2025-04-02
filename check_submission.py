@@ -63,7 +63,7 @@ def check_q1(path: ZipPath) -> None:
         gens = f.readlines()
         if len(gens) != Q1_GENS_LEN:
             raise InvalidSubmissionError(
-                f"{Q1_GENS_FILENAME} should contain exactly 60 elements"
+                f"{Q1_GENS_FILENAME} should contain exactly {Q1_GENS_LEN} elements, got {len(gens)}."
             )
 
     # check guesses file
@@ -76,18 +76,18 @@ def check_q1(path: ZipPath) -> None:
         guesses = np.load(f)
         if not np.issubdtype(guesses.dtype, np.integer):
             raise InvalidSubmissionError(
-                f"{Q1_GUESSES_FILENAME} should contain integers only."
+                f"{Q1_GUESSES_FILENAME} should contain integers only, got {guesses.dtype}."
             )
         if not (
             np.all(guesses > Q1_GUESSES_RANGE[0])
             and np.all(guesses < Q1_GUESSES_RANGE[1])
         ):
             raise InvalidSubmissionError(
-                f"{Q1_GUESSES_FILENAME} should contain integers between 1 and 4 (both inclusive) only."
+                f"{Q1_GUESSES_FILENAME} should contain integers between {Q1_GUESSES_RANGE[0]} and {Q1_GUESSES_RANGE[1]} (both inclusive) only."
             )
         if guesses.shape != Q1_GUESSES_SHAPE:
             raise InvalidSubmissionError(
-                f"{Q1_GUESSES_FILENAME} should contain exactly 80 elements."
+                f"{Q1_GUESSES_FILENAME} should have shape {Q1_GUESSES_SHAPE}, got {guesses.shape}."
             )
     print("Q1 checks passed.")
 
@@ -102,7 +102,7 @@ def check_q2(path: ZipPath) -> None:
         api_key = f.read().strip()
         if len(api_key) != len(Q2_EXAMPLE_KEY):
             raise InvalidSubmissionError(
-                f"{Q2_API_KEY_FILENAME} should contain exactly {len(Q2_EXAMPLE_KEY)} characters."
+                f"{Q2_API_KEY_FILENAME} should contain exactly {len(Q2_EXAMPLE_KEY)} characters, got {len(api_key)}."
             )
 
     # Check the code file
@@ -125,16 +125,16 @@ def check_q2(path: ZipPath) -> None:
     for file in [Q2_PVALUE_FILENAME, Q2_BOOL_FILENAME]:
         array_file = path / file
         if not array_file.exists():
-            raise InvalidSubmissionError(
-                f"No {file} file found. Please submit a file with this extension."
-            )
+            raise InvalidSubmissionError(f"No {file} file found. Please submit it.")
         with array_file.open("rb") as f:
             array = np.load(f)
             if not np.issubdtype(array.dtype, np.integer):
-                raise InvalidSubmissionError(f"{file} should contain integers only.")
+                raise InvalidSubmissionError(
+                    f"{file} should contain integers only, got {array.dtype}."
+                )
             if array.shape != Q2_ARRAYS_SHAPE:
                 raise InvalidSubmissionError(
-                    f"{file} should contain an array of shape (1000,)."
+                    f"{file} should contain an array of shape {Q2_ARRAYS_SHAPE}, got {array.shape}."
                 )
 
     print("Q2 checks passed.")
