@@ -6,12 +6,13 @@
 # ///
 
 # HOW TO RUN:
+# As a standalone script with `uv` (without the need to install numpy)
 # uv run check_submission.py <student_id>
-# or 
+# or, if you don't have `uv` installed, after you installed `numpy`
 # python check_submission.py <student_id>
-# where <student_id> is your student ID in the format nn-nnn-nnn
-# and your assignment submission is in the same directory as the script, and is named llm_assignment_3_submission-<student_id>.zip
-# e.g. uv run check_submission.py 12-345-678 checks llm_assignment_3_submission-12-345-678.zip
+# where <student_id> is your student ID in the format nn-nnn-nnn as on your student ID card (legi)
+# and your assignment submission is in the same directory as the script, and is named 'llm_assignment_3_submission-<student_id>.zip'
+# e.g. `uv run check_submission.py 12-345-678` checks the archive named 'llm_assignment_3_submission-12-345-678.zip'
 
 import base64
 import os
@@ -76,9 +77,8 @@ def check_q1(path: ZipPath) -> None:
     gens_file = path / Q1_GENS_FILENAME
     if not gens_file.exists():
         warnings.warn(
-            MissingSubmissionFileWarning(
-                f"{Q1_GENS_FILENAME} not found in the submission. This part of Q1 will not be graded."
-            )
+            f"{Q1_GENS_FILENAME} not found in the submission. This part of Q1 will not be graded.",
+            MissingSubmissionFileWarning,
         )
     else:
         with gens_file.open() as f:
@@ -92,9 +92,8 @@ def check_q1(path: ZipPath) -> None:
     guesses_file = path / Q1_GUESSES_FILENAME
     if not guesses_file.exists():
         warnings.warn(
-            MissingSubmissionFileWarning(
-                f"{Q1_GUESSES_FILENAME} not found in the submission. This part of Q1 will not be graded."
-            )
+            f"{Q1_GUESSES_FILENAME} not found in the submission. This part of Q1 will not be graded.",
+            MissingSubmissionFileWarning,
         )
         return
     with guesses_file.open("rb") as f:
@@ -120,9 +119,8 @@ def check_q2(path: ZipPath) -> None:
     api_key_file = path / Q2_API_KEY_FILENAME
     if not api_key_file.exists():
         warnings.warn(
-            MissingSubmissionFileWarning(
-                f"{Q2_API_KEY_FILENAME} not found in the submission. In the current state, Q2 will not be graded."
-            )
+            f"{Q2_API_KEY_FILENAME} not found in the submission. In the current state, Q2 will not be graded.",
+            MissingSubmissionFileWarning,
         )
         return
     with api_key_file.open() as f:
@@ -145,7 +143,8 @@ def check_q2(path: ZipPath) -> None:
 
     if not code_file_exists:
         warnings.warn(
-            f"No {Q2_CODE_FILENAME} file found. Please submit a file with one of these extensions: {', '.join(Q2_CODE_EXTENSIONS)}. In the current state, Q2 will not be graded."
+            f"No {Q2_CODE_FILENAME} file found. Please submit a file with one of these extensions: {', '.join(Q2_CODE_EXTENSIONS)}. In the current state, Q2 will not be graded.",
+            MissingSubmissionFileWarning,
         )
         return
 
@@ -154,9 +153,8 @@ def check_q2(path: ZipPath) -> None:
         array_file = path / file
         if not array_file.exists():
             warnings.warn(
-                MissingSubmissionFileWarning(
-                    f"{file} not found. This part of Q2 will not be graded."
-                )
+                f"{file} not found. This part of Q2 will not be graded.",
+                MissingSubmissionFileWarning,
             )
             continue
         with array_file.open("rb") as f:
@@ -176,9 +174,8 @@ def check_q3(path: ZipPath) -> None:
     guesses_file = path / Q3_GUESSES_FILENAME
     if not guesses_file.exists():
         warnings.warn(
-            MissingSubmissionFileWarning(
-                f"{Q3_GUESSES_FILENAME} not found in the submission. Q3 will not be graded."
-            )
+            f"{Q3_GUESSES_FILENAME} not found in the submission. Q3 will not be graded.",
+            MissingSubmissionFileWarning,
         )
         return
     with guesses_file.open() as f:
@@ -203,7 +200,16 @@ def check_submission(zip_file_path: Path, student_id: str) -> None:
 
 def main(student_id: str) -> None:
     zip_file_path = Path(f"llm_assignment_3_submission-{student_id}.zip")
-    check_submission(zip_file_path, student_id)
+    with warnings.catch_warnings(
+        record=True, category=MissingSubmissionFileWarning
+    ) as w:
+        check_submission(zip_file_path, student_id)
+        if not w:
+            print("Everything is ok!")
+        else:
+            print("!!! Careful, some warnings were raised !!!")
+            for warning in w:
+                print(warning.message)
 
 
 if __name__ == "__main__":
