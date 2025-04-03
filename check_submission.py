@@ -173,7 +173,7 @@ def check_submission(zip_file_path: str, student_id: str) -> None:
 
 
 def main(student_id: str) -> None:
-    zip_file_path = f"{student_id}.zip"
+    zip_file_path = f"llm_assignment_3_submission-{student_id}.zip"
     check_submission(zip_file_path, student_id)
 
 
