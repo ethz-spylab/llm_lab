@@ -20,10 +20,12 @@ import sys
 import numpy as np
 import warnings
 from pathlib import Path
-from zipfile import ZipFile, Path as ZipPath
+from zipfile import ZIP_LZMA, ZipFile, Path as ZipPath
 
 from utils import is_valid_student_id
 
+ZIP_FILENAME = "llm_assignment_3_submission-{student_id}.zip"
+DECLARATION_OF_ORIGINALITY_FILENAME = "declaration_originality.pdf"
 
 # Q1 parameters
 Q1_GENS_FILENAME = "Q1_gens.txt"
@@ -191,15 +193,22 @@ def check_submission(zip_file_path: Path, student_id: str) -> None:
         raise InvalidSubmissionError(f"Submission file {zip_file_path} not found.")
     with ZipFile(zip_file_path, "r") as zip_file:
         root_path = ZipPath(zip_file)
+
         if has_specific_subdirectory(root_path, zip_file_path.stem):
             root_path = root_path / zip_file_path.stem
+
+        if not (root_path / DECLARATION_OF_ORIGINALITY_FILENAME).exists():
+            raise InvalidSubmissionError(
+                f"{DECLARATION_OF_ORIGINALITY_FILENAME} not found in the submission."
+            )
+
         check_q1(root_path)
         check_q2(root_path)
         check_q3(root_path)
 
 
 def main(student_id: str) -> None:
-    zip_file_path = Path(f"llm_assignment_3_submission-{student_id}.zip")
+    zip_file_path = Path(ZIP_FILENAME.format(student_id=student_id))
     with warnings.catch_warnings(
         record=True, category=MissingSubmissionFileWarning
     ) as warnings_list:
