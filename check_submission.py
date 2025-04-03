@@ -156,9 +156,9 @@ def check_q2(path: ZipPath) -> None:
                 raise InvalidSubmissionError(
                     f"{file} should contain integers only, got {array.dtype}."
                 )
-            if array.shape != Q2_ARRAYS_SHAPE:
+            if array.shape[0] > Q2_ARRAYS_SHAPE[0]:
                 raise InvalidSubmissionError(
-                    f"{file} should contain an array of shape {Q2_ARRAYS_SHAPE}, got {array.shape}."
+                    f"{file} should have at most {Q2_ARRAYS_SHAPE} elements, got {array.shape}."
                 )
 
 
