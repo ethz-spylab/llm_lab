@@ -8,25 +8,10 @@ import base64
 import os
 import sys
 import numpy as np
-import re
 from pathlib import Path
 from zipfile import ZipFile, Path as ZipPath
 
-
-def is_valid_student_id(input_string: str) -> bool:
-    """
-    Checks if the input string matches the pattern 'XX-XXX-XXX' where X is any digit.
-
-    Args:
-        input_string (str): The string to check
-
-    Returns:
-        bool: True if the string matches the pattern, False otherwise
-    """
-    pattern = r"^\d{2}-\d{3}-\d{3}$"
-
-    # Use re.match to check if the entire string matches the pattern
-    return bool(re.match(pattern, input_string))
+from utils import is_valid_student_id
 
 
 # Q1 parameters
