@@ -9,7 +9,7 @@ import os
 import sys
 import numpy as np
 import re
-import secrets
+from pathlib import Path
 from zipfile import ZipFile, Path as ZipPath
 
 
@@ -44,6 +44,10 @@ Q2_PVALUE_FILENAME = "Q2_pvalue.npy"
 Q2_BOOL_FILENAME = "Q2_bool.npy"
 Q2_ARRAYS_SHAPE = (140,)
 Q2_KEY_LEN = 50
+
+# Q3 parameters
+Q3_GUESSES_FILENAME = "Q3_guesses.txt"
+Q3_GUESSES_LEN = 21
 
 
 class InvalidSubmissionError(Exception):
@@ -155,17 +159,27 @@ def check_q2(path: ZipPath) -> None:
 
 
 def check_q3(path: ZipPath) -> None:
-    # Implement your check for question 3 here
-    pass
+    # check generations file
+    guesses_file = path / Q3_GUESSES_FILENAME
+    if not guesses_file.exists():
+        raise InvalidSubmissionError(
+            f"{Q3_GUESSES_FILENAME} not found in the submission."
+        )
+    with guesses_file.open() as f:
+        guesses = f.readlines()
+        if len(guesses) != Q3_GUESSES_LEN:
+            raise InvalidSubmissionError(
+                f"{Q3_GUESSES_FILENAME} should contain exactly {Q3_GUESSES_LEN} elements, got {len(guesses)}."
+            )
 
 
-def check_submission(zip_file_path: str, student_id: str) -> None:
+def check_submission(zip_file_path: Path, student_id: str) -> None:
     if not os.path.exists(zip_file_path):
         raise InvalidSubmissionError(f"Submission file {zip_file_path} not found.")
     with ZipFile(zip_file_path, "r") as zip_file:
         root_path = ZipPath(zip_file)
-        if has_specific_subdirectory(root_path, student_id):
-            root_path = root_path / student_id
+        if has_specific_subdirectory(root_path, zip_file_path.stem):
+            root_path = root_path / zip_file_path.stem
         check_q1(root_path)
         check_q2(root_path)
         check_q3(root_path)
@@ -173,7 +187,7 @@ def check_submission(zip_file_path: str, student_id: str) -> None:
 
 
 def main(student_id: str) -> None:
-    zip_file_path = f"llm_assignment_3_submission-{student_id}.zip"
+    zip_file_path = Path(f"llm_assignment_3_submission-{student_id}.zip")
     check_submission(zip_file_path, student_id)
 
 
