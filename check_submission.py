@@ -202,14 +202,15 @@ def main(student_id: str) -> None:
     zip_file_path = Path(f"llm_assignment_3_submission-{student_id}.zip")
     with warnings.catch_warnings(
         record=True, category=MissingSubmissionFileWarning
-    ) as w:
+    ) as warnings_list:
         check_submission(zip_file_path, student_id)
-        if not w:
+        if not warnings_list:
             print("Everything is ok!")
-        else:
-            print("!!! Careful, some warnings were raised !!!")
-            for warning in w:
-                print(warning.message)
+            return
+
+        print("!!! Careful, some warnings were raised:")
+        for warning in warnings_list:
+            print(warning.message)
 
 
 if __name__ == "__main__":
