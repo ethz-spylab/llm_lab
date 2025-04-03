@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 try:
@@ -15,7 +16,8 @@ def get_solution_path(student_id: str, save_on_drive: bool) -> Path:
             "You are not running this code in Google Colab. If you want to save your solution on your Google Drive, please run this code in Google Colab."
         )
     if save_on_drive and drive is not None:
-        drive.mount("/content/drive")
+        if not os.path.exists("/content/drive"):
+            drive.mount("/content/drive")
         return Path(f"/content/drive/MyDrive/{DIR_NAME.format(student_id=student_id)}")
     else:
         return Path(f"./{DIR_NAME.format(student_id=student_id)}")
