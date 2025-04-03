@@ -18,6 +18,8 @@ def get_solution_path(student_id: str, save_on_drive: bool) -> Path:
     if save_on_drive and drive is not None:
         if not os.path.exists("/content/drive"):
             drive.mount("/content/drive")
-        return Path(f"/content/drive/MyDrive/{DIR_NAME.format(student_id=student_id)}")
+        path = Path(f"/content/drive/MyDrive/{DIR_NAME.format(student_id=student_id)}")
     else:
-        return Path(f"./{DIR_NAME.format(student_id=student_id)}")
+        path = Path(f"./{DIR_NAME.format(student_id=student_id)}")
+    path.mkdir(parents=True, exist_ok=True)
+    return path
