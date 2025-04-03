@@ -8,6 +8,7 @@ import base64
 import os
 import sys
 import numpy as np
+import warnings
 from pathlib import Path
 from zipfile import ZipFile, Path as ZipPath
 
@@ -39,6 +40,10 @@ class InvalidSubmissionError(Exception):
     pass
 
 
+class MissingSubmissionFileWarning(Warning):
+    pass
+
+
 def has_specific_subdirectory(parent_path: ZipPath, subdir_name: str) -> bool:
     subdir_path = parent_path / subdir_name
     return subdir_path.exists() and subdir_path.is_dir()
@@ -61,20 +66,28 @@ def check_q1(path: ZipPath) -> None:
     # check generations file
     gens_file = path / Q1_GENS_FILENAME
     if not gens_file.exists():
-        raise InvalidSubmissionError(f"{Q1_GENS_FILENAME} not found in the submission")
-    with gens_file.open() as f:
-        gens = f.readlines()
-        if len(gens) != Q1_GENS_LEN:
-            raise InvalidSubmissionError(
-                f"{Q1_GENS_FILENAME} should contain exactly {Q1_GENS_LEN} elements, got {len(gens)}."
+        warnings.warn(
+            MissingSubmissionFileWarning(
+                f"{Q1_GENS_FILENAME} not found in the submission. This part of Q1 will not be graded."
             )
+        )
+    else:
+        with gens_file.open() as f:
+            gens = f.readlines()
+            if len(gens) != Q1_GENS_LEN:
+                raise InvalidSubmissionError(
+                    f"{Q1_GENS_FILENAME} should contain exactly {Q1_GENS_LEN} elements, got {len(gens)}."
+                )
 
     # check guesses file
     guesses_file = path / Q1_GUESSES_FILENAME
     if not guesses_file.exists():
-        raise InvalidSubmissionError(
-            f"{Q1_GUESSES_FILENAME} not found in the submission"
+        warnings.warn(
+            MissingSubmissionFileWarning(
+                f"{Q1_GUESSES_FILENAME} not found in the submission. This part of Q1 will not be graded."
+            )
         )
+        return
     with guesses_file.open("rb") as f:
         guesses = np.load(f)
         if not np.issubdtype(guesses.dtype, np.integer):
@@ -92,15 +105,17 @@ def check_q1(path: ZipPath) -> None:
             raise InvalidSubmissionError(
                 f"{Q1_GUESSES_FILENAME} should have shape {Q1_GUESSES_SHAPE}, got {guesses.shape}."
             )
-    print("Q1 checks passed.")
 
 
 def check_q2(path: ZipPath) -> None:
     api_key_file = path / Q2_API_KEY_FILENAME
     if not api_key_file.exists():
-        raise InvalidSubmissionError(
-            f"{Q2_API_KEY_FILENAME} not found in the submission"
+        warnings.warn(
+            MissingSubmissionFileWarning(
+                f"{Q2_API_KEY_FILENAME} not found in the submission. In the current state, Q2 will not be graded."
+            )
         )
+        return
     with api_key_file.open() as f:
         api_key = f.read().strip()
         if not is_valid_token_urlsafe(api_key, Q2_KEY_LEN):
@@ -120,15 +135,21 @@ def check_q2(path: ZipPath) -> None:
             code_file_exists = True
 
     if not code_file_exists:
-        raise InvalidSubmissionError(
-            f"No {Q2_CODE_FILENAME} file found. Please submit a file with one of these extensions: {', '.join(Q2_CODE_EXTENSIONS)}"
+        warnings.warn(
+            f"No {Q2_CODE_FILENAME} file found. Please submit a file with one of these extensions: {', '.join(Q2_CODE_EXTENSIONS)}. In the current state, Q2 will not be graded."
         )
+        return
 
     # control p-values file
     for file in [Q2_PVALUE_FILENAME, Q2_BOOL_FILENAME]:
         array_file = path / file
         if not array_file.exists():
-            raise InvalidSubmissionError(f"No {file} file found. Please submit it.")
+            warnings.warn(
+                MissingSubmissionFileWarning(
+                    f"{file} not found. This part of Q2 will not be graded."
+                )
+            )
+            continue
         with array_file.open("rb") as f:
             array = np.load(f)
             if not np.issubdtype(array.dtype, np.integer):
@@ -140,16 +161,17 @@ def check_q2(path: ZipPath) -> None:
                     f"{file} should contain an array of shape {Q2_ARRAYS_SHAPE}, got {array.shape}."
                 )
 
-    print("Q2 checks passed.")
-
 
 def check_q3(path: ZipPath) -> None:
     # check generations file
     guesses_file = path / Q3_GUESSES_FILENAME
     if not guesses_file.exists():
-        raise InvalidSubmissionError(
-            f"{Q3_GUESSES_FILENAME} not found in the submission."
+        warnings.warn(
+            MissingSubmissionFileWarning(
+                f"{Q3_GUESSES_FILENAME} not found in the submission. Q3 will not be graded."
+            )
         )
+        return
     with guesses_file.open() as f:
         guesses = f.readlines()
         if len(guesses) != Q3_GUESSES_LEN:
@@ -168,7 +190,6 @@ def check_submission(zip_file_path: Path, student_id: str) -> None:
         check_q1(root_path)
         check_q2(root_path)
         check_q3(root_path)
-    print("Submission is valid.")
 
 
 def main(student_id: str) -> None:
