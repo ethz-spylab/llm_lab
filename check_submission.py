@@ -4,6 +4,15 @@
 #     "numpy",
 # ]
 # ///
+
+# HOW TO RUN:
+# uv run check_submission.py <student_id>
+# or 
+# python check_submission.py <student_id>
+# where <student_id> is your student ID in the format nn-nnn-nnn
+# and your assignment submission is in the same directory as the script, and is named llm_assignment_3_submission-<student_id>.zip
+# e.g. uv run check_submission.py 12-345-678 checks llm_assignment_3_submission-12-345-678.zip
+
 import base64
 import os
 import sys
