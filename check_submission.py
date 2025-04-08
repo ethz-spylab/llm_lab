@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = [
 #     "numpy",
 # ]
@@ -8,7 +8,7 @@
 # HOW TO RUN:
 # As a standalone script with `uv` (without the need to install numpy)
 # uv run check_submission.py <student_id>
-# or, if you don't have `uv` installed, after you installed `numpy`
+# or, if you don't have `uv` installed, after you installed `numpy` in an environment with **Python>=3.11**
 # python check_submission.py <student_id>
 # where <student_id> is your student ID in the format nn-nnn-nnn as on your student ID card (legi)
 # and your assignment submission is in the same directory as the script, and is named 'llm_assignment_3_submission-<student_id>.zip'
