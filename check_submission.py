@@ -19,10 +19,9 @@ import os
 import sys
 import numpy as np
 import warnings
+import re
 from pathlib import Path
 from zipfile import ZIP_LZMA, ZipFile, Path as ZipPath
-
-from utils import is_valid_student_id
 
 ZIP_FILENAME = "llm_assignment_3_submission-{student_id}.zip"
 DECLARATION_OF_ORIGINALITY_FILENAME = "declaration_originality.pdf"
@@ -229,7 +228,8 @@ if __name__ == "__main__":
         )
         sys.exit(1)
     student_id = sys.argv[1]
-    if not is_valid_student_id(student_id):
+    # Check if the student ID matches the pattern 'XX-XXX-XXX' where X is any digit
+    if not bool(re.match(r"^\d{2}-\d{3}-\d{3}$", student_id)):
         print("Student ID must be in the 'nn-nnn-nnn' format.")
         sys.exit(1)
     main(student_id)
