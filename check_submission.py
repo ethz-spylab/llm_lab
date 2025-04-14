@@ -27,7 +27,7 @@ ZIP_FILENAME = "llm_assignment_3_submission-{student_id}.zip"
 DECLARATION_OF_ORIGINALITY_FILENAME = "declaration_originality.pdf"
 
 # Q1 parameters
-Q1_GENS_FILENAME = "Q1_gens.txt"
+Q1_GENS_FILENAME = "Q1_gens.npy"
 Q1_GUESSES_FILENAME = "Q1_guesses.npy"
 Q1_GENS_LEN = 60
 Q1_GUESSES_SHAPE = (80,)
