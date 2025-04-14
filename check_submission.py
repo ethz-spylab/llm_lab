@@ -21,7 +21,7 @@ import numpy as np
 import warnings
 import re
 from pathlib import Path
-from zipfile import ZIP_LZMA, ZipFile, Path as ZipPath
+from zipfile import ZipFile, Path as ZipPath
 
 ZIP_FILENAME = "llm_assignment_3_submission-{student_id}.zip"
 DECLARATION_OF_ORIGINALITY_FILENAME = "declaration_originality.pdf"
@@ -29,7 +29,7 @@ DECLARATION_OF_ORIGINALITY_FILENAME = "declaration_originality.pdf"
 # Q1 parameters
 Q1_GENS_FILENAME = "Q1_gens.npy"
 Q1_GUESSES_FILENAME = "Q1_guesses.npy"
-Q1_GENS_LEN = 60
+Q1_GENS_SHAPE = (60,)
 Q1_GUESSES_SHAPE = (80,)
 Q1_GUESSES_RANGE = (1, 4)
 
@@ -82,11 +82,15 @@ def check_q1(path: ZipPath) -> None:
             MissingSubmissionFileWarning,
         )
     else:
-        with gens_file.open() as f:
-            gens = f.readlines()
-            if len(gens) != Q1_GENS_LEN:
+        with gens_file.open("rb") as f:
+            gens = np.load(f)
+            if not np.issubdtype(gens.dtype, np.str_):
                 raise InvalidSubmissionError(
-                    f"{Q1_GENS_FILENAME} should contain exactly {Q1_GENS_LEN} elements, got {len(gens)}."
+                    f"{Q1_GUESSES_FILENAME} should contain strings only, got {gens.dtype}."
+                )
+            if gens.shape != Q1_GENS_SHAPE:
+                raise InvalidSubmissionError(
+                    f"{Q1_GENS_FILENAME} should contain exactly {Q1_GENS_SHAPE} elements, got {gens.shape}."
                 )
 
     # check guesses file
