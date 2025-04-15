@@ -22,6 +22,9 @@ import warnings
 import re
 from pathlib import Path
 from zipfile import ZipFile, Path as ZipPath
+import subprocess
+import tempfile
+import shutil
 
 ZIP_FILENAME = "llm_assignment_3_submission-{student_id}.zip"
 DECLARATION_OF_ORIGINALITY_FILENAME = "declaration_originality.pdf"
@@ -45,6 +48,10 @@ Q2_KEY_LEN = 50
 # Q3 parameters
 Q3_GUESSES_FILENAME = "Q3_guesses.txt"
 Q3_GUESSES_LEN = 21
+
+# Constants
+SCRIPT_FILENAME = "check_submission.py"
+REPO_URL = "https://raw.githubusercontent.com/ethz-spylab/llm_lab/main/" + SCRIPT_FILENAME
 
 
 class InvalidSubmissionError(Exception):
@@ -210,7 +217,56 @@ def check_submission(zip_file_path: Path, student_id: str) -> None:
         check_q3(root_path)
 
 
+def check_script_version():
+    """Checks if the current script is the latest version from the repository."""
+    print(f"Checking for the latest version of {SCRIPT_FILENAME}...")
+    # Check if wget and diff are available
+    if not shutil.which("wget") or not shutil.which("diff"):
+        print("Warning: 'wget' or 'diff' command not found. Cannot check for script updates.")
+        return
+
+    current_script_path = Path(__file__).resolve()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".py") as temp_file:
+        temp_file_path = Path(temp_file.name)
+
+    try:
+        # Download the latest script version
+        wget_cmd = ["wget", "-q", "-O", str(temp_file_path), REPO_URL]
+        wget_result = subprocess.run(wget_cmd, capture_output=True, text=True)
+
+        if wget_result.returncode != 0:
+            print(f"Warning: Failed to download the latest script version from {REPO_URL}. Error: {wget_result.stderr}")
+            return
+
+        diff_cmd = ["diff", "-u", str(current_script_path), str(temp_file_path)]
+        diff_result = subprocess.run(diff_cmd, capture_output=True, text=True)
+
+        # diff exits with 1 if files differ, 0 if identical, >1 if error
+        if diff_result.returncode == 1:
+            print("------------------------- SCRIPT OUTDATED -----------------------------")
+            print("Warning: You are using an outdated version of this script.")
+            print(f"Please download the latest version from: {REPO_URL}")
+            print("\nDifferences found:")
+            print(diff_result.stdout) # Print the actual diff
+            print("--------------------------------------------------------------------------")
+        elif diff_result.returncode == 0:
+            print("You are using the latest version of the script.")
+        else:
+            print(f"Warning: Error running diff command: {diff_result.stderr}")
+
+    except Exception as e:
+        print(f"Warning: An error occurred while checking for script updates: {e}")
+    finally:
+        # Clean up the temporary file
+        if temp_file_path.exists():
+            temp_file_path.unlink()
+
+
 def main(student_id: str) -> None:
+    # Check script version first
+    check_script_version()
+
     zip_file_path = Path(ZIP_FILENAME.format(student_id=student_id))
     with warnings.catch_warnings(
         record=True, category=MissingSubmissionFileWarning
