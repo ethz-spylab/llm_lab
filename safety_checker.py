@@ -46,6 +46,8 @@ class MySafetyChecker(nn.Module):
     @torch.no_grad()
     def forward(self, clip_input, images):
         image_embeds = self.clip_model.get_image_features(clip_input)
+        if not isinstance(image_embeds, torch.Tensor):
+            image_embeds = image_embeds.pooler_output
         image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
 
         image_embeds = image_embeds.cpu().float().numpy()
