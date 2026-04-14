@@ -15,7 +15,7 @@ def get_embedding(concept, clip_tokenizer, clip):
         inputs = clip_tokenizer(concept, return_tensors="pt", padding=True).to(clip.device)
         embed = clip.get_text_features(**inputs)
         if not isinstance(embed, torch.Tensor):
-            embed = embed.text_embeds
+            embed = embed.pooler_output
 
         # normalize the embedding to unit length
         embed = embed / embed.norm(p=2, dim=-1, keepdim=True)
